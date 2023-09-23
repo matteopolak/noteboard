@@ -1,0 +1,6 @@
+Notes App -> Note as in musical note, not a written note
+
+write notes with colour, and text with regular text (one of each max per square)
+allow selecting a region, and when played will repeat the selection using non-overlapping sections that go to the right
+
+a checkbox for "voice" will also say the text using TTS when it lines up with the notes
