@@ -9,6 +9,8 @@
 	export let height: number;
 
 	let canvas: HTMLCanvasElement;
+	let centerX = 0;
+	let centerY = 0;
 
 	$: adjustedWidth = Math.ceil(width / 10 + 10);
 	$: adjustedHeight = Math.ceil(height / 10 + 10);
@@ -27,12 +29,12 @@
 	const getChunk = debounce(
 		() =>
 			trpc().getChunk.query({
-				x: -adjustedWidth,
-				y: -adjustedHeight,
+				x: centerX - adjustedWidth,
+				y: centerY - adjustedHeight,
 				width: canvas.width,
 				height: canvas.height,
 			}),
-		1_000
+		100
 	);
 
 	onMount(() => {
@@ -65,6 +67,7 @@
 
 	let previousX = 0;
 	let previousY = 0;
+
 	function updateCurrentCell(event: MouseEvent) {
 		const rect = canvas.getBoundingClientRect();
 
@@ -87,6 +90,10 @@
 	let currentX = 0;
 	let currentY = 0;
 
+	let dragging = false;
+	let draggingStartX = 0;
+	let draggingStartY = 0;
+
 	function handleMouseMove(event: MouseEvent) {
 		const rect = canvas.getBoundingClientRect();
 
@@ -96,6 +103,34 @@
 		// if mouse is down
 		if (event.buttons === 1) {
 			updateCurrentCell(event);
+		} else if (event.buttons === 2) {
+			if (!dragging) {
+				dragging = true;
+				draggingStartX = event.clientX;
+				draggingStartY = event.clientY;
+			}
+
+			// move canvas around and request new chunks
+			const x = event.clientX - draggingStartX;
+			const y = event.clientY - draggingStartY;
+
+			centerX = Math.round(x / 5);
+			centerY = Math.round(y / 5);
+
+			console.log({ x, y, centerX, centerY });
+
+			// request new chunk
+			getChunk();
+
+			// re-draw canvas by offsetting current pixels
+			const ctx = canvas.getContext('2d')!;
+
+			const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.putImageData(imageData, x - canvas.width / 2, y - canvas.height / 2);
+		} else {
+			dragging = false;
 		}
 	}
 
