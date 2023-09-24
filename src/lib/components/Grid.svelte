@@ -79,12 +79,8 @@
 		y: number;
 	}) {
 		return {
-			x: Math.ceil(
-				Math.round(coordinate.x - center.x) * PIXEL_SIZE + width / 2
-			),
-			y: Math.ceil(
-				Math.round(coordinate.y - center.y) * PIXEL_SIZE + height / 2
-			),
+			x: Math.floor((coordinate.x - center.x) * PIXEL_SIZE + width / 2),
+			y: Math.floor((coordinate.y - center.y) * PIXEL_SIZE + height / 2),
 		};
 	}
 
