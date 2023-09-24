@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Cell } from '$lib/cell';
+	import { COLOR_TO_NOTE, type Cell } from '$lib/cell';
 	import { trpc } from '$lib/trpc';
 	import { debounce } from '$lib/util';
 	import { onMount } from 'svelte';
@@ -56,6 +56,23 @@
 		getChunk();
 	});
 
+	function convertScreenPixelToCoordinate(pixel: { x: number; y: number }) {
+		return {
+			x: centerX + Math.round((pixel.x - canvas.width / 2) / 5),
+			y: centerY + Math.round((pixel.y - canvas.height / 2) / 5),
+		};
+	}
+
+	function convertCoordinateToScreenPixel(coordinate: {
+		x: number;
+		y: number;
+	}) {
+		return {
+			x: (coordinate.x - centerX) * 5 + canvas.width / 2,
+			y: (coordinate.y - centerY) * 5 + canvas.height / 2,
+		};
+	}
+
 	function updateCell(cell: Cell) {
 		const ctx = canvas.getContext('2d')!;
 
@@ -63,42 +80,43 @@
 			cell.color & 0xff
 		})`;
 
-		ctx.fillRect(
-			cell.x * 5 + canvas.width / 2,
-			cell.y * 5 + canvas.height / 2,
-			5,
-			5
-		);
+		const pixel = convertCoordinateToScreenPixel(cell);
+
+		ctx.fillRect(pixel.x, pixel.y, 5, 5);
 	}
 
 	function updateCurrentCell(event: MouseEvent) {
-		const rect = canvas.getBoundingClientRect();
-
-		const x = event.clientX - rect.left - canvas.width / 2;
-		const y = event.clientY - rect.top - canvas.height / 2;
+		const { x, y } = convertScreenPixelToCoordinate({
+			x: event.clientX,
+			y: event.clientY,
+		});
 
 		if (x !== previousX || y !== previousY) {
 			previousX = x;
 			previousY = y;
 
-			trpc().updateColor.mutate(
-				{ x: Math.round(x / 5), y: Math.round(y / 5), color },
-				{}
-			);
+			trpc().updateColor.mutate({ x, y, color }, {});
 		}
 	}
 
 	let dragging = false;
+	let selecting = false;
+
 	let draggingStartX = 0;
 	let draggingStartY = 0;
 
-	function handleMouseMove(event: MouseEvent) {
-		const rect = canvas.getBoundingClientRect();
+	function sleep(ms: number) {
+		return new Promise(r => setTimeout(r, ms));
+	}
 
-		currentX =
-			centerX + Math.round((event.clientX - rect.left - canvas.width / 2) / 5);
-		currentY =
-			centerY + Math.round((event.clientY - rect.top - canvas.height / 2) / 5);
+	async function handleMouseMove(event: MouseEvent) {
+		const currentCoord = convertScreenPixelToCoordinate({
+			x: event.clientX,
+			y: event.clientY,
+		});
+
+		currentX = currentCoord.x;
+		currentY = currentCoord.y;
 
 		// if mouse is down
 		if (event.buttons === 1) {
@@ -110,12 +128,22 @@
 				draggingStartY = event.clientY;
 			}
 
-			// move canvas around and request new chunks
-			const x = event.clientX - draggingStartX;
-			const y = event.clientY - draggingStartY;
+			console.log({ ctrl: event.ctrlKey, selecting });
 
-			centerX += Math.round(x / 5);
-			centerY += Math.round(y / 5);
+			if (event.ctrlKey && !selecting) {
+				selecting = true;
+				draggingStartX = event.clientX;
+				draggingStartY = event.clientY;
+
+				return;
+			} else if (selecting) return;
+
+			// move canvas around and request new chunks
+			const x = draggingStartX - event.clientX;
+			const y = draggingStartY - event.clientY;
+
+			centerX += Math.round(x / 25);
+			centerY += Math.round(y / 25);
 
 			// request new chunk
 			getChunk();
@@ -126,9 +154,56 @@
 			const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			ctx.putImageData(imageData, x - canvas.width / 2, y - canvas.height / 2);
 		} else {
 			dragging = false;
+
+			if (selecting) {
+				selecting = false;
+
+				const width = event.clientX - draggingStartX;
+				const height = event.clientY - draggingStartY;
+
+				const cells = await trpc().returnChunk.query({
+					x: centerX + Math.round(draggingStartX / 5),
+					y: centerY + Math.round(draggingStartY / 5),
+					width: Math.round(width / 5),
+					height: Math.round(height / 5),
+				});
+
+				cells.sort((a, b) =>
+					a.x === b.x ? a.y - b.y : a.y === b.y ? a.x - b.x : 0
+				);
+
+				for (const [i, cell] of cells.entries()) {
+					const next = cells[i + 1];
+					// cells are played left-to-right, top-to-bottom like reading a book
+
+					// number of cells between this cell and the next cell
+					// if theyre on the same row, this is the difference in x
+					// if theyre on different rows, this is the difference in y * width
+					// plus the difference in x
+					const cellsBetween =
+						next && next.y === cell.y
+							? next.x - cell.x
+							: next
+							? (next.y - cell.y) * width + next.x - cell.x
+							: 0;
+
+					const color = cell.color;
+
+					cell.color = 0;
+					updateCell(cell);
+
+					console.log('playing');
+					console.log({ color, note: COLOR_TO_NOTE[color], cell });
+					await COLOR_TO_NOTE[color]?.play();
+
+					await sleep(300 * (cellsBetween + 1));
+
+					cell.color = color;
+					updateCell(cell);
+				}
+			}
 		}
 	}
 

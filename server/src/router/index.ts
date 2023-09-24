@@ -59,6 +59,23 @@ export const appRouter = router({
 
       ee.emit('updateCells', cells);
     }),
+	returnChunk: procedure
+    .input(
+      z.object({
+        x: z.number().int(),
+        y: z.number().int(),
+        width: z.number().int(),
+        height: z.number().int(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { rows: cells } = await ctx.pool.query<Cell>(
+        'SELECT * FROM "cell" WHERE (x >= $1 AND x <= ($1 + $3) AND y >= $2 AND y <= ($2 + $4))',
+        [input.x, input.y, input.width, input.height]
+      );
+
+      return cells;
+    }),
 });
 
 export type Router = typeof appRouter;
