@@ -9,13 +9,18 @@
 	export let height: number;
 
 	let canvas: HTMLCanvasElement;
+
 	let centerX = 0;
 	let centerY = 0;
 
+	let previousX = 0;
+	let previousY = 0;
+
+	let currentX = 0;
+	let currentY = 0;
+
 	$: adjustedWidth = Math.ceil(width / 10 + 10);
 	$: adjustedHeight = Math.ceil(height / 10 + 10);
-
-	$: console.log({ adjustedWidth, adjustedHeight });
 
 	$: {
 		if (canvas) {
@@ -57,6 +62,7 @@
 		ctx.fillStyle = `rgb(${cell.color >> 16}, ${(cell.color >> 8) & 0xff}, ${
 			cell.color & 0xff
 		})`;
+
 		ctx.fillRect(
 			cell.x * 5 + canvas.width / 2,
 			cell.y * 5 + canvas.height / 2,
@@ -65,30 +71,22 @@
 		);
 	}
 
-	let previousX = 0;
-	let previousY = 0;
-
 	function updateCurrentCell(event: MouseEvent) {
 		const rect = canvas.getBoundingClientRect();
 
-		// 0,0 is the middle of the canvas
 		const x = event.clientX - rect.left - canvas.width / 2;
 		const y = event.clientY - rect.top - canvas.height / 2;
 
-		console.log({ x, y });
+		if (x !== previousX || y !== previousY) {
+			previousX = x;
+			previousY = y;
 
-		if (x !== previousX && y !== previousY) {
 			trpc().updateColor.mutate(
 				{ x: Math.round(x / 5), y: Math.round(y / 5), color },
 				{}
 			);
-			previousX = x;
-			previousY = y;
 		}
 	}
-
-	let currentX = 0;
-	let currentY = 0;
 
 	let dragging = false;
 	let draggingStartX = 0;
@@ -97,8 +95,10 @@
 	function handleMouseMove(event: MouseEvent) {
 		const rect = canvas.getBoundingClientRect();
 
-		currentX = Math.round((event.clientX - rect.left - canvas.width / 2) / 5);
-		currentY = Math.round((event.clientY - rect.top - canvas.height / 2) / 5);
+		currentX =
+			centerX + Math.round((event.clientX - rect.left - canvas.width / 2) / 5);
+		currentY =
+			centerY + Math.round((event.clientY - rect.top - canvas.height / 2) / 5);
 
 		// if mouse is down
 		if (event.buttons === 1) {
@@ -114,10 +114,8 @@
 			const x = event.clientX - draggingStartX;
 			const y = event.clientY - draggingStartY;
 
-			centerX = Math.round(x / 5);
-			centerY = Math.round(y / 5);
-
-			console.log({ x, y, centerX, centerY });
+			centerX += Math.round(x / 5);
+			centerY += Math.round(y / 5);
 
 			// request new chunk
 			getChunk();
@@ -134,21 +132,29 @@
 		}
 	}
 
+	function handleClick(event: MouseEvent) {
+		updateCurrentCell(event);
+	}
+
 	let color: number;
 </script>
 
-
-	
-
-	<div class=" absolute bg-slate-600 p-3 rounded-full m-2">
+<div class="absolute m-2 flex flex-col gap-1">
+	<div class="bg-slate-600/80 p-3 rounded-full">
 		<ColorBar bind:selected={color} />
 	</div>
 
-	<div class="absolute right-0 bg-slate-600 text-white p-3 rounded-full m-2 w-1/12 justify-center flex gap-2">
-		x:<p class="w-7">  {currentX}</p>
-		y:<p class="w-7">  {currentY}</p>
-		
+	<div
+		class="bg-slate-600/80 p-3 rounded-full w-fit text-white font-extrabold font-mono"
+	>
+		({currentX}, {currentY})
 	</div>
+</div>
 
-
-<canvas bind:this={canvas} {width} {height} on:mousemove={handleMouseMove} />
+<canvas
+	bind:this={canvas}
+	{width}
+	{height}
+	on:mousemove={handleMouseMove}
+	on:click={handleClick}
+/>
