@@ -102,19 +102,18 @@
 	let color = 0;
 </script>
 
-<div
-	class="absolute top-0 left-0 right-0 w-full grid grid-flow-col content-between p-4"
->
-	<div />
 
-	<div>
+	
+
+	<div class=" absolute bg-slate-600 p-3 rounded-full m-2">
 		<ColorBar bind:selected={color} />
 	</div>
 
-	<div class="absolute right-0">
-		x: {currentX}
-		y: {currentY}
+	<div class="absolute right-0 bg-slate-600 text-white p-3 rounded-full m-2 w-1/12 justify-center flex gap-2">
+		x:<p class="w-7">  {currentX}</p>
+		y:<p class="w-7">  {currentY}</p>
+		
 	</div>
-</div>
+
 
 <canvas bind:this={canvas} {width} {height} on:mousemove={handleMouseMove} />
