@@ -88,7 +88,6 @@ export const appRouter = router({
 
       return cells;
     }),
-
   removeCell: procedure
     .input(z.object({ x: z.number().int(), y: z.number().int() }))
     .mutation(async ({ ctx, input }) => {

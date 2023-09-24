@@ -20,8 +20,9 @@ export function trpc() {
       splitLink({
         condition: (o) =>
           o.type === 'subscription' ||
-          o.path === 'getChunk' ||
-          o.path === 'updateColor',
+          o.path === 'updateCell' ||
+          o.path === 'removeCell' ||
+					o.path === 'requestChunkStream',
         true: wsLink({
           client: createWSClient({
             url: 'ws://192.168.2.120:4039',

@@ -20,8 +20,8 @@
 	let previousX = 0;
 	let previousY = 0;
 
-	let currentX = 0.5;
-	let currentY = 0.5;
+	let currentX = 0;
+	let currentY = 0;
 
 	$: if (canvas) {
 		canvas.width = width;
@@ -79,8 +79,12 @@
 		y: number;
 	}) {
 		return {
-			x: Math.floor((coordinate.x - center.x) * PIXEL_SIZE + width / 2),
-			y: Math.floor((coordinate.y - center.y) * PIXEL_SIZE + height / 2),
+			x: Math.ceil(
+				Math.round(coordinate.x - center.x) * PIXEL_SIZE + width / 2
+			),
+			y: Math.ceil(
+				Math.round(coordinate.y - center.y) * PIXEL_SIZE + height / 2
+			),
 		};
 	}
 
@@ -133,11 +137,21 @@
 	let dragging = false;
 	let selecting = false;
 
+	let firstSelectPixel = { x: 0, y: 0 };
+
 	function sleep(ms: number) {
 		return new Promise(r => setTimeout(r, ms));
 	}
 
 	async function handleMouseMove(event: MouseEvent) {
+		const currentCoord = convertScreenPixelToCoordinate({
+			x: event.clientX,
+			y: event.clientY,
+		});
+
+		currentX = currentCoord.x;
+		currentY = currentCoord.y;
+
 		// if mouse is down
 		if (event.buttons === 1) {
 			const currentCoord = convertScreenPixelToCoordinate({
@@ -156,6 +170,11 @@
 
 			if (event.ctrlKey && !selecting) {
 				selecting = true;
+				firstSelectPixel = {
+					x: event.clientX,
+					y: event.clientY,
+				};
+
 				return;
 			} else if (selecting) return;
 
@@ -171,35 +190,17 @@
 			center.y -= scalePixelToCoordinate(event.movementY);
 			center = center;
 
-			console.log('center', center);
-
 			// request new chunk
 			getChunk();
-
-			const currentCoord = convertScreenPixelToCoordinate({
-				x: event.clientX,
-				y: event.clientY,
-			});
-
-			currentX = currentCoord.x;
-			currentY = currentCoord.y;
 		} else {
-			const currentCoord = convertScreenPixelToCoordinate({
-				x: event.clientX,
-				y: event.clientY,
-			});
-
-			currentX = currentCoord.x;
-			currentY = currentCoord.y;
-
 			dragging = false;
 
 			if (selecting) {
 				selecting = false;
 
 				const dragStart = convertScreenPixelToCoordinate({
-					x: event.movementX,
-					y: event.movementY,
+					x: firstSelectPixel.x,
+					y: firstSelectPixel.y,
 				});
 				const dragEnd = convertScreenPixelToCoordinate({
 					x: event.clientX,
@@ -211,31 +212,33 @@
 					y: Math.min(dragStart.y, dragEnd.y),
 				};
 
-				const dragDeltaX = Math.abs(dragStart.x - dragEnd.x);
-				const dragDeltaY = Math.abs(dragStart.y - dragEnd.y);
+				const dragBottomRight = {
+					x: Math.max(dragStart.x, dragEnd.x),
+					y: Math.max(dragStart.y, dragEnd.y),
+				};
 
-				const gizmoPoint = convertCoordinateToScreenPixel({
-					x: center.x + dragDeltaX,
-					y: center.y + dragDeltaY,
-				});
+				const pixelTopLeft = convertCoordinateToScreenPixel(dragTopLeft);
+				const pixelBottomRight =
+					convertCoordinateToScreenPixel(dragBottomRight);
 
 				// draw a rectangle
 				ctx.strokeStyle = 'green';
 				ctx.strokeRect(
-					gizmoPoint.x,
-					gizmoPoint.y,
-					(dragDeltaX + 1) * PIXEL_SIZE,
-					(dragDeltaY + 1) * PIXEL_SIZE
+					pixelTopLeft.x,
+					pixelTopLeft.y,
+					pixelBottomRight.x - pixelTopLeft.x,
+					pixelBottomRight.y - pixelTopLeft.y
 				);
 
 				const cells = await trpc().getChunk.query({
-					x: dragDeltaX,
-					y: dragDeltaY,
-					width: dragTopLeft.x,
-					height: dragTopLeft.y,
+					x: Math.round(dragTopLeft.x),
+					y: Math.round(dragTopLeft.y),
+					width: Math.round(dragBottomRight.x - dragTopLeft.x),
+					height: Math.round(dragBottomRight.y - dragTopLeft.y),
 				});
 
-				cells.sort((a, b) => (a.y === b.y ? a.x - b.x : a.y - b.y));
+				// sort cells based on their order in a grid, read left-to-right, top-to-bottom
+				cells.sort((a, b) => (a.y !== b.y ? a.y - b.y : a.x - b.x));
 
 				for (const [i, cell] of cells.entries()) {
 					const next = cells[i + 1];
@@ -248,9 +251,8 @@
 					const cellsBetween =
 						next && next.y === cell.y
 							? next.x - cell.x
-							: next
-							? (next.y - cell.y) * width + next.x - cell.x
-							: 0;
+							: (next?.y - cell.y) * (dragBottomRight.x - dragTopLeft.x) +
+							  (next?.x - cell.x);
 
 					const color = cell.color;
 
@@ -283,7 +285,7 @@
 	<div
 		class="bg-slate-600/80 p-3 rounded-full w-fit text-white font-extrabold font-mono hadow-xl"
 	>
-		({(currentX - 0.5).toFixed(2)}, {(currentY - 0.5).toFixed(2)})
+		({currentX.toFixed(2)}, {currentY.toFixed(2)})
 	</div>
 </div>
 
@@ -292,6 +294,8 @@
 	{width}
 	{height}
 	on:mousemove={handleMouseMove}
+	on:mouseup={handleMouseMove}
+	on:mousedown={handleMouseMove}
 	on:click={updateCurrentCell}
 	style="image-rendering: pixelated;"
 />
