@@ -73,7 +73,7 @@
 
 		console.log({ x, y });
 
-		if(x !== previousX && y !== previousY) {
+		if (x !== previousX && y !== previousY) {
 			trpc().updateColor.mutate(
 				{ x: Math.round(x / 5), y: Math.round(y / 5), color },
 				{}
@@ -86,19 +86,16 @@
 	let currentX = 0;
 	let currentY = 0;
 
-	let drawing = false;
-	
-
 	function handleMouseMove(event: MouseEvent) {
 		const rect = canvas.getBoundingClientRect();
 
 		currentX = Math.round((event.clientX - rect.left - canvas.width / 2) / 5);
 		currentY = Math.round((event.clientY - rect.top - canvas.height / 2) / 5);
 
-		if(drawing) {
+		// if mouse is down
+		if (event.buttons === 1) {
 			updateCurrentCell(event);
 		}
-
 	}
 
 	let hex = '#000000';
@@ -129,11 +126,4 @@
 	</div>
 </div>
 
-<canvas
-	bind:this={canvas}
-	{width}
-	{height}
-	on:mousedown={() => {drawing = true}}
-	on:mouseup={() => {drawing = false}}
-	on:mousemove={handleMouseMove}
-/>
+<canvas bind:this={canvas} {width} {height} on:mousemove={handleMouseMove} />
