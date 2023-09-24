@@ -74,7 +74,7 @@
 			style="background-color: {color.html}"
 			checked={selected.hex === color.hex}
 			bind:group={selected}
-			on:click={() => COLOR_TO_NOTE[color.hex].play()}
+			on:click={() => COLOR_TO_NOTE[color.hex]?.play()}
 		/>
 	{/each}
 </div>

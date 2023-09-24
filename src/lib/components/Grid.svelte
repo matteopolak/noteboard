@@ -39,7 +39,7 @@
 			width: Math.floor(bounds.x * 2 + 2),
 			height: Math.floor(bounds.y * 2 + 2),
 		});
-	}, 100);
+	}, 50);
 
 	onMount(() => {
 		ctx = canvas?.getContext('2d')!;
