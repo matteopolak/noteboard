@@ -160,19 +160,32 @@
 			if (selecting) {
 				selecting = false;
 
-				const width = event.clientX - draggingStartX;
-				const height = event.clientY - draggingStartY;
-
-				const cells = await trpc().returnChunk.query({
-					x: centerX + Math.round(draggingStartX / 5),
-					y: centerY + Math.round(draggingStartY / 5),
-					width: Math.round(width / 5),
-					height: Math.round(height / 5),
+				const dragStart = convertScreenPixelToCoordinate({
+					x: draggingStartX,
+					y: draggingStartY,
 				});
 
-				cells.sort((a, b) =>
-					a.x === b.x ? a.y - b.y : a.y === b.y ? a.x - b.x : 0
-				);
+				const dragEnd = convertScreenPixelToCoordinate({
+					x: event.clientX,
+					y: event.clientY,
+				});
+
+				const x = Math.min(dragStart.x, dragEnd.x);
+				const y = Math.min(dragStart.y, dragEnd.y);
+
+				const width = Math.abs(dragStart.x - dragEnd.x);
+				const height = Math.abs(dragStart.y - dragEnd.y);
+
+				const cells = await trpc().returnChunk.query({
+					x,
+					y,
+					width,
+					height,
+				});
+
+				cells.sort((a, b) => (a.y === b.y ? a.x - b.x : a.y - b.y));
+
+				console.log({ cells });
 
 				for (const [i, cell] of cells.entries()) {
 					const next = cells[i + 1];
@@ -195,10 +208,15 @@
 					updateCell(cell);
 
 					console.log('playing');
-					console.log({ color, note: COLOR_TO_NOTE[color], cell });
+					console.log({
+						color,
+						note: COLOR_TO_NOTE[color],
+						cell,
+						cellsBetween,
+					});
 					await COLOR_TO_NOTE[color]?.play();
 
-					await sleep(300 * (cellsBetween + 1));
+					await sleep(200 * Math.max(1, cellsBetween + 1));
 
 					cell.color = color;
 					updateCell(cell);
