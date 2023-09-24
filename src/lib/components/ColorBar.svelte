@@ -1,12 +1,13 @@
+<script context="module">
+	export const WHITE = {
+		html: '#FFFFFF',
+		hex: 0xffffff,
+		label: 'Eraser',
+	};
+</script>
+
 <script lang="ts">
 	import { COLOR_TO_NOTE } from '$lib/cell';
-
-	export const WHITE = 
-		{
-			html: '#FFFFFF',
-			hex: 0xFFFFFF,
-			label: 'Eraser',
-		}
 
 	const COLORS = [
 		//Pastel brown
@@ -57,8 +58,7 @@
 			hex: 0xbce29e,
 			label: 'C',
 		},
-		WHITE
-
+		WHITE,
 	];
 
 	export let selected = COLORS[0];
@@ -77,6 +77,4 @@
 			on:click={() => COLOR_TO_NOTE[color.hex].play()}
 		/>
 	{/each}
-
-		
 </div>

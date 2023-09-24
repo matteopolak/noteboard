@@ -54,7 +54,7 @@ export const appRouter = router({
         [input.x, input.y, input.color]
       );
     }),
-  getChunk: procedure
+  requestChunkStream: procedure
     .input(
       z.object({
         x: z.number().int(),
@@ -71,7 +71,7 @@ export const appRouter = router({
 
       ee.emit('updateCells', cells);
     }),
-  returnChunk: procedure
+  getChunk: procedure
     .input(
       z.object({
         x: z.number().int(),
