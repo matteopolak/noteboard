@@ -132,10 +132,6 @@
 		}
 	}
 
-	function handleClick(event: MouseEvent) {
-		updateCurrentCell(event);
-	}
-
 	let color: number;
 </script>
 
@@ -156,5 +152,5 @@
 	{width}
 	{height}
 	on:mousemove={handleMouseMove}
-	on:click={handleClick}
+	on:click={updateCurrentCell}
 />
