@@ -6,41 +6,49 @@
 		{
 			html: '#836953',
 			hex: 0x836953,
+			label: 'C',
 		},
 		// Pastel red
 		{
 			html: '#ff6961',
 			hex: 0xff6961,
+			label: 'D',
 		},
 		// Pastel purple
 		{
 			html: '#b19cd9',
 			hex: 0xb19cd9,
+			label: 'E',
 		},
 		// Pastel pink
 		{
 			html: '#ff9ff3',
 			hex: 0xff9ff3,
+			label: 'F',
 		},
 		// Pastel orange
 		{
 			html: '#ffb347',
 			hex: 0xffb347,
+			label: 'G',
 		},
 		// Pastel blue
 		{
 			html: '#a0c4ff',
 			hex: 0xa0c4ff,
+			label: 'A',
 		},
 		// Pastel cyan
 		{
 			html: '#a0e7e5',
 			hex: 0xa0e7e5,
+			label: 'B',
 		},
 		//Pastel green
 		{
 			html: '#bce29e',
 			hex: 0xbce29e,
+			label: 'C',
 		},
 	];
 

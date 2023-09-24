@@ -17,7 +17,7 @@ type Cell = {
 const ee = new EventEmitter() as TypedEmitter<Events>;
 
 export const appRouter = router({
-  live: procedure.subscription(async ({ ctx }) => {
+  live: procedure.subscription(() => {
     return observable<Cell[]>((s) => {
       ee.on('updateCells', s.next);
 
