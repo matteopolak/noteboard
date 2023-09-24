@@ -6,7 +6,7 @@
 	import ColorBar, { WHITE } from './ColorBar.svelte';
 
 	const PIXEL_SIZE = 15;
-	const BACKGROUND = 0x1d1d1d;
+	const BACKGROUND = 0xffffff;
 
 	export let width: number;
 	export let height: number;
@@ -23,31 +23,19 @@
 	let currentX = 0.5;
 	let currentY = 0.5;
 
-	$: {
-		if (canvas) {
-			canvas.width = width;
-			canvas.height = height;
+	$: if (canvas) {
+		canvas.width = width;
+		canvas.height = height;
 
-			getChunk();
-		}
+		getChunk();
 	}
 
-	const getChunk = debounce(() => {
-		trpc().requestChunkStream.query({
-			x: Math.floor(center.x - bounds.x - 1),
-			y: Math.floor(center.y - bounds.y - 1),
-			width: Math.floor(bounds.x * 2 + 2),
-			height: Math.floor(bounds.y * 2 + 2),
-		});
-	}, 50);
-
 	onMount(() => {
-		ctx = canvas?.getContext('2d')!;
-
+		ctx = canvas.getContext('2d')!;
 		ctx.fillStyle = `rgb(${BACKGROUND >> 16}, ${(BACKGROUND >> 8) & 0xff}, ${
 			BACKGROUND & 0xff
 		})`;
-		ctx.fillRect(0, 0, width, height);
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 		trpc().watchUpdate.subscribe(undefined, {
 			onData: cells => {
@@ -68,9 +56,16 @@
 				}
 			},
 		});
-
-		getChunk();
 	});
+
+	const getChunk = debounce(() => {
+		trpc().requestChunkStream.query({
+			x: Math.floor(center.x - bounds.x - 1),
+			y: Math.floor(center.y - bounds.y - 1),
+			width: Math.floor(bounds.x * 2 + 2),
+			height: Math.floor(bounds.y * 2 + 2),
+		});
+	}, 50);
 
 	function convertScreenPixelToCoordinate(pixel: { x: number; y: number }) {
 		return {
@@ -119,6 +114,7 @@
 
 		position.x = Math.floor(position.x);
 		position.y = Math.floor(position.y);
+
 		if (position.x !== previousX || position.y !== previousY) {
 			previousX = position.x;
 			previousY = position.y;
