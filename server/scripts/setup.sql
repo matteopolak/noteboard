@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS cell (
+    x INT NOT NULL,
+    y INT NOT NULL,
+    color INT NOT NULL,
+    PRIMARY KEY(x, y)
+);
