@@ -5,6 +5,8 @@
 	import { onMount } from 'svelte';
 	import ColorBar from './ColorBar.svelte';
 
+	const PIXEL_SIZE = 15;
+
 	export let width: number;
 	export let height: number;
 
@@ -58,8 +60,8 @@
 
 	function convertScreenPixelToCoordinate(pixel: { x: number; y: number }) {
 		return {
-			x: centerX + Math.round((pixel.x - canvas.width / 2) / 5),
-			y: centerY + Math.round((pixel.y - canvas.height / 2) / 5),
+			x: centerX + Math.floor((pixel.x - canvas.width / 2) / PIXEL_SIZE),
+			y: centerY + Math.floor((pixel.y - canvas.height / 2) / PIXEL_SIZE),
 		};
 	}
 
@@ -68,8 +70,8 @@
 		y: number;
 	}) {
 		return {
-			x: (coordinate.x - centerX) * 5 + canvas.width / 2,
-			y: (coordinate.y - centerY) * 5 + canvas.height / 2,
+			x: (coordinate.x - centerX) * PIXEL_SIZE + canvas.width / 2,
+			y: (coordinate.y - centerY) * PIXEL_SIZE + canvas.height / 2,
 		};
 	}
 
@@ -82,7 +84,7 @@
 
 		const pixel = convertCoordinateToScreenPixel(cell);
 
-		ctx.fillRect(pixel.x, pixel.y, 5, 5);
+		ctx.fillRect(pixel.x, pixel.y, PIXEL_SIZE, PIXEL_SIZE);
 	}
 
 	function updateCurrentCell(event: MouseEvent) {
@@ -142,8 +144,8 @@
 			const x = draggingStartX - event.clientX;
 			const y = draggingStartY - event.clientY;
 
-			centerX += Math.round(x / 25);
-			centerY += Math.round(y / 25);
+			centerX += Math.round(x / 5 / PIXEL_SIZE);
+			centerY += Math.round(y / 5 / PIXEL_SIZE);
 
 			// request new chunk
 			getChunk();
