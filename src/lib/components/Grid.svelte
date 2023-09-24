@@ -3,7 +3,7 @@
 	import { trpc } from '$lib/trpc';
 	import { debounce } from '$lib/util';
 	import { onMount } from 'svelte';
-	import ColorBar from './ColorBar.svelte';
+	import ColorBar, { WHITE } from './ColorBar.svelte';
 
 	const PIXEL_SIZE = 15;
 	const BACKGROUND = 0x1d1d1d;
@@ -88,6 +88,8 @@
 			cell.color & 0xff
 		})`;
 		ctx.fillRect(pixel.x, pixel.y, PIXEL_SIZE, PIXEL_SIZE);
+
+
 	}
 
 	function removeCell(cell: Cell) {
@@ -109,7 +111,11 @@
 			previousX = x;
 			previousY = y;
 
-			trpc().updateColor.mutate({ x, y, color }, {});
+			if(color.hex = WHITE.hex) {
+				trpc().removeCell.mutate({ x, y, color }, {});
+			} else {
+				trpc().updateCell.mutate({ x, y, color }, {});
+			}
 		}
 	}
 
@@ -242,7 +248,11 @@
 		}
 	}
 
-	let color: number;
+	let color: {
+		hex: number;
+		html: string;
+		label: string;
+	};
 </script>
 
 <div

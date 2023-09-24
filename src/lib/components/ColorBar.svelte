@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { COLOR_TO_NOTE } from '$lib/cell';
 
+	export const WHITE = 
+		{
+			html: '#FFFFFF',
+			hex: 0xFFFFFF,
+			label: 'Eraser',
+		}
+
 	const COLORS = [
 		//Pastel brown
 		{
@@ -50,9 +57,11 @@
 			hex: 0xbce29e,
 			label: 'C',
 		},
+		WHITE
+
 	];
 
-	export let selected = COLORS[0].hex;
+	export let selected = COLORS[0];
 </script>
 
 <div class="flex flex-row gap-2">
@@ -61,11 +70,13 @@
 			class="w-8 h-8 radio"
 			type="radio"
 			name="color"
-			value={color.hex}
+			value={color}
 			style="background-color: {color.html}"
-			checked={selected === color.hex}
+			checked={selected.hex === color.hex}
 			bind:group={selected}
 			on:click={() => COLOR_TO_NOTE[color.hex].play()}
 		/>
 	{/each}
+
+		
 </div>

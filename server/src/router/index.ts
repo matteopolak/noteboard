@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 type Events = {
   updateCells: (cells: Cell[]) => void;
+  removeCells: (cells: CellWithoutColor[]) => void;
 };
 
 type Cell = {
@@ -14,10 +15,12 @@ type Cell = {
   color: number;
 };
 
+type CellWithoutColor = Omit<Cell, 'color'>;
+
 const ee = new EventEmitter() as TypedEmitter<Events>;
 
 export const appRouter = router({
-  live: procedure.subscription(() => {
+  watchUpdate: procedure.subscription(() => {
     return observable<Cell[]>((s) => {
       ee.on('updateCells', s.next);
 
@@ -26,7 +29,16 @@ export const appRouter = router({
       };
     });
   }),
-  updateColor: procedure
+  watchRemove: procedure.subscription(() => {
+    return observable<CellWithoutColor[]>((s) => {
+      ee.on('removeCells', s.next);
+
+      return () => {
+        ee.off('removeCells', s.next);
+      };
+    });
+  }),
+  updateCell: procedure
     .input(
       z.object({
         x: z.number().int(),
@@ -59,7 +71,7 @@ export const appRouter = router({
 
       ee.emit('updateCells', cells);
     }),
-	returnChunk: procedure
+  returnChunk: procedure
     .input(
       z.object({
         x: z.number().int(),
@@ -75,6 +87,17 @@ export const appRouter = router({
       );
 
       return cells;
+    }),
+
+  removeCell: procedure
+    .input(z.object({ x: z.number().int(), y: z.number().int() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.pool.query('DELETE FROM "cell" WHERE x = $1 AND y = $2', [
+        input.x,
+        input.y,
+      ]);
+
+      ee.emit('removeCells', [{ x: input.x, y: input.y }]);
     }),
 });
 
