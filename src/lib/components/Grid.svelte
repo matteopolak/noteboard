@@ -3,6 +3,7 @@
 	import { trpc } from '$lib/trpc';
 	import { debounce } from '$lib/util';
 	import { onMount } from 'svelte';
+	import ColorBar from './ColorBar.svelte';
 
 	export let width: number;
 	export let height: number;
@@ -98,13 +99,7 @@
 		}
 	}
 
-	let hex = '#000000';
-
-	function hexToColor(hex: string) {
-		return parseInt(hex.slice(1), 16);
-	}
-
-	$: color = hexToColor(hex);
+	let color = 0;
 </script>
 
 <div
@@ -113,11 +108,7 @@
 	<div />
 
 	<div>
-		<input
-			type="color"
-			class="w-8 h-8 rounded-full overflow-hidden cursor-pointer"
-			bind:value={hex}
-		/>
+		<ColorBar bind:selected={color} />
 	</div>
 
 	<div class="absolute right-0">
