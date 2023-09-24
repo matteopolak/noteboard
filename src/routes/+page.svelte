@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import { trpc } from '$lib/trpc';
+	import Grid from '$lib/components/Grid.svelte';
 
-	trpc().live.subscribe(undefined, {
-		onData(value) {
-			console.log(value);
-		},
-	});
+	let innerWidth: number;
+	let innerHeight: number;
 </script>
+
+<svelte:window bind:innerWidth bind:innerHeight />
+
+<Grid width={innerWidth} height={innerHeight} />

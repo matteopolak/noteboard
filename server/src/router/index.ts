@@ -26,7 +26,6 @@ export const appRouter = router({
       };
     });
   }),
-
   updateColor: procedure
     .input(
       z.object({
@@ -35,7 +34,7 @@ export const appRouter = router({
         color: z.number().int(),
       })
     )
-    .subscription(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       ee.emit('updateCells', [input]);
 
       await ctx.pool.query(
@@ -43,19 +42,19 @@ export const appRouter = router({
         [input.x, input.y, input.color]
       );
     }),
-
   getChunk: procedure
     .input(
       z.object({
         x: z.number().int(),
         y: z.number().int(),
-        radius: z.number().int(),
+        width: z.number().int(),
+        height: z.number().int(),
       })
     )
-    .subscription(async ({ ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       const { rows: cells } = await ctx.pool.query<Cell>(
-        'SELECT * FROM "cell" WHERE ($1 - $3) <= x AND ($1 + $3) >= x AND ($2 - $3) <= y AND ($2 + $3) >= y',
-        [input.x, input.y, input.radius]
+        'SELECT * FROM "cell" WHERE (x >= $1 AND x <= ($1 + $3) AND y >= $2 AND y <= ($2 + $4))',
+        [input.x, input.y, input.width, input.height]
       );
 
       ee.emit('updateCells', cells);

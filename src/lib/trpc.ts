@@ -12,10 +12,11 @@ export function trpc() {
 	const client = createTRPCProxyClient<Router>({
 		links: [
 			splitLink({
-				condition: o => o.type === 'subscription',
+				condition: o => o.type === 'subscription' || o.path === 'getChunk' || o.path === 'updateColor',
 				true: wsLink({
 					client: createWSClient({
 						url: 'ws://localhost:4039',
+						// @ts-ignore
 						WebSocket: browser ? WebSocket : ws.WebSocket,
 					}),
 				}),
