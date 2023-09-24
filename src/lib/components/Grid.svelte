@@ -99,7 +99,7 @@
 		}
 	}
 
-	let color = 0;
+	let color: number;
 </script>
 
 <div
