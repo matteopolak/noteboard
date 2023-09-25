@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import ColorBar, { WHITE } from './ColorBar.svelte';
 	import ZoomBar from './ZoomBar.svelte';
+ 	import LeftMouseIcon from './LeftMouseIcon.svelte';
 
 	const BACKGROUND = 0xffffff;
 
@@ -285,6 +286,8 @@
 		html: string;
 		label: string;
 	};
+
+	let helpSectionOpen = false;
 </script>
 
 <div
@@ -292,16 +295,51 @@
 >
 	<div class="flex flex-row gap-1 flex-wrap">
 		<div
-			class="bg-slate-600/80 p-3 rounded-full pointer-events-auto shadow-2xl"
+			class="bg-slate-600/90 p-3 rounded-full pointer-events-auto shadow-2xl"
 		>
 			<ColorBar bind:selected={color} />
 		</div>
 		<div
-			class="bg-slate-600/80 p-3 rounded-full pointer-events-auto shadow-2xl"
+			class="bg-slate-600/90 p-3 rounded-full pointer-events-auto shadow-2xl"
 		>
 			<ZoomBar bind:zoom on:zoom={handleZoom} />
 		</div>
-	</div>
+
+		<div class="absolute top-0 right-0 m-2 pointer-events-auto"> 
+
+			<button class="btn bg-slate-600/90 border-none text-white w-12 h-full hover:bg-slate-500/80" on:click={() => helpSectionOpen = true}>
+				<svg class="fill-current h-6 w-6" viewBox="0 0 24 24"><path d="M11.07 12.85c.77-1.39 2.25-2.21 3.11-3.44.91-1.29.4-3.7-2.18-3.7-1.69 0-2.52 1.28-2.87 2.34L6.54 6.96C7.25 4.83 9.18 3 11.99 3c2.35 0 3.96 1.07 4.78 2.41.7 1.15 1.11 3.3.03 4.9-1.2 1.77-2.35 2.31-2.97 3.45-.25.46-.35.76-.35 2.24h-2.89c-.01-.78-.13-2.05.48-3.15zM14 20c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"></path></svg>
+				</button>
+			<dialog id="my_modal_2" class:modal-open={helpSectionOpen} class="modal">
+				<div class="modal-box bg-slate-600 text-white">
+					<h3 class="font-bold text-lg">Welcome to NoteBoard!</h3>
+					<p class="py-4">
+						
+						<LeftMouseIcon />
+						on any tile to place the note you currently have selected.
+						Then, hold the <kbd class="kbd bg-slate-600/80 border-2">ctrl</kbd>  and hold <LeftMouseIcon /> while dragging across an area to play the selected notes!
+						
+					</p>
+					<p>
+						You may also pan the view with 
+						<svg class="fill-current w-6 h-6  inline-block"
+							viewBox="0 0 24 24">
+							<path d="M13 1.07V9h7c0-4.08-3.05-7.44-7-7.93zM4 15c0 4.42 3.58 8 8 8s8-3.58 8-8v-4H4v4zm7-13.93C7.05">
+							</path>
+						</svg>.
+					</p>
+				</div>
+				<form method="dialog" class="modal-backdrop">
+					<button on:click={() => helpSectionOpen = false}>close</button>
+				</form>
+			</dialog>
+
+
+		</div>
+
+	
+
+		</div>
 	<div
 		class="bg-slate-600/80 p-3 rounded-full w-fit text-white font-extrabold font-mono hadow-xl"
 	>
