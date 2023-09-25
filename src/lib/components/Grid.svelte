@@ -4,16 +4,16 @@
 	import { debounce } from '$lib/util';
 	import { onMount } from 'svelte';
 	import ColorBar, { WHITE } from './ColorBar.svelte';
-	import ZoomBar from './ZoomBar.svelte';
 	import LeftMouseIcon from './icons/LeftMouseIcon.svelte';
 	import RightMouseIcon from './icons/RightMouseIcon.svelte';
 
+	// "linear"-looking zoom levels, where 1 is normal
 	const BACKGROUND = 0xffffff;
 
 	export let width: number;
 	export let height: number;
 
-	let zoom: number;
+	let zoom = 1;
 	$: PIXEL_SIZE = 15 * zoom;
 
 	let canvas: HTMLCanvasElement;
@@ -303,11 +303,6 @@
 		>
 			<ColorBar bind:selected={color} />
 		</div>
-		<div
-			class="bg-slate-600/90 p-3 rounded-full pointer-events-auto shadow-2xl"
-		>
-			<ZoomBar bind:zoom on:zoom={handleZoom} />
-		</div>
 
 		<button
 			class="absolute top-0 right-0 pointer-events-auto btn bg-slate-600/90 border-none text-white w-12 h-12 hover:bg-slate-500/80"
@@ -368,5 +363,14 @@
 	on:mouseup={handleMouseMove}
 	on:mousedown={handleMouseMove}
 	on:click={updateCurrentCell}
+	on:wheel|preventDefault={event => {
+		const lastZoom = zoom;
+		const newZoom = Math.min(5, Math.max(0.05, zoom - event.deltaY / 1_500));
+
+		if (newZoom !== lastZoom) {
+			zoom = newZoom;
+			handleZoom();
+		}
+	}}
 	style="image-rendering: pixelated;"
 />
