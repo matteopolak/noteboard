@@ -5,7 +5,8 @@
 	import { onMount } from 'svelte';
 	import ColorBar, { WHITE } from './ColorBar.svelte';
 	import ZoomBar from './ZoomBar.svelte';
-	import LeftMouseIcon from './LeftMouseIcon.svelte';
+	import LeftMouseIcon from './icons/LeftMouseIcon.svelte';
+	import RightMouseIcon from './icons/RightMouseIcon.svelte';
 
 	const BACKGROUND = 0xffffff;
 
@@ -335,7 +336,7 @@
 					<span>
 						<kbd class="kbd kbd-sm text-slate-600">Ctrl</kbd>
 						<kbd class="kbd kbd-sm text-slate-600 inline-block">
-							<LeftMouseIcon />
+							<RightMouseIcon />
 						</kbd>
 					</span>
 				</div>
@@ -343,11 +344,7 @@
 				<div class="flex flex-row place-content-between">
 					<span> Pan viewport </span>
 					<kbd class="kbd kbd-sm text-slate-600 inline-block">
-						<svg class="fill-current w-6 h-6 inline-block" viewBox="0 0 24 24">
-							<path
-								d="M13 1.07V9h7c0-4.08-3.05-7.44-7-7.93zM4 15c0 4.42 3.58 8 8 8s8-3.58 8-8v-4H4v4zm7-13.93C7.05"
-							/>
-						</svg>
+						<RightMouseIcon />
 					</kbd>
 				</div>
 			</div>
