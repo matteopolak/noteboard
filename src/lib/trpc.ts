@@ -25,13 +25,13 @@ export function trpc() {
 					o.path === 'requestChunkStream',
         true: wsLink({
           client: createWSClient({
-            url: 'ws://192.168.2.120:4039',
+            url: 'wss://noteboardws.matteopolak.com',
             // @ts-ignore
             WebSocket: browser ? WebSocket : ws.WebSocket,
           }),
         }),
         false: httpLink({
-          url: 'http://192.168.2.120:4038',
+          url: 'https://noteboardapi.matteopolak.com',
         }),
       }),
     ],
