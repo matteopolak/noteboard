@@ -4,18 +4,24 @@
 	import { debounce } from '$lib/util';
 	import { onMount } from 'svelte';
 	import ColorBar, { WHITE } from './ColorBar.svelte';
+	import ZoomBar from './ZoomBar.svelte';
 
-	const PIXEL_SIZE = 15;
 	const BACKGROUND = 0xffffff;
 
 	export let width: number;
 	export let height: number;
 
+	let zoom: number;
+	$: PIXEL_SIZE = 15 * zoom;
+
 	let canvas: HTMLCanvasElement;
 	let ctx: CanvasRenderingContext2D;
 
 	let center = { x: 0, y: 0 };
-	$: bounds = convertScreenPixelToCoordinate({ x: width, y: height });
+	$: bounds = convertScreenPixelToCoordinate({
+		x: Math.max(width, width / zoom),
+		y: Math.max(height, height / zoom),
+	});
 
 	let previousX = 0;
 	let previousY = 0;
@@ -26,6 +32,15 @@
 	$: if (canvas) {
 		canvas.width = width;
 		canvas.height = height;
+
+		getChunk();
+	}
+
+	function handleZoom() {
+		ctx.fillStyle = `rgb(${BACKGROUND >> 16}, ${(BACKGROUND >> 8) & 0xff}, ${
+			BACKGROUND & 0xff
+		})`;
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 		getChunk();
 	}
@@ -275,8 +290,17 @@
 <div
 	class="absolute m-2 flex flex-col gap-1 top-0 left-0 right-0 place-items-center pointer-events-none"
 >
-	<div class="bg-slate-600/80 p-3 rounded-full pointer-events-auto shadow-2xl">
-		<ColorBar bind:selected={color} />
+	<div class="flex flex-row gap-1 flex-wrap">
+		<div
+			class="bg-slate-600/80 p-3 rounded-full pointer-events-auto shadow-2xl"
+		>
+			<ColorBar bind:selected={color} />
+		</div>
+		<div
+			class="bg-slate-600/80 p-3 rounded-full pointer-events-auto shadow-2xl"
+		>
+			<ZoomBar bind:zoom on:zoom={handleZoom} />
+		</div>
 	</div>
 	<div
 		class="bg-slate-600/80 p-3 rounded-full w-fit text-white font-extrabold font-mono hadow-xl"
