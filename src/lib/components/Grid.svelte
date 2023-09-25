@@ -254,6 +254,7 @@
 
 				for (const [i, cell] of cells.entries()) {
 					const next = cells[i + 1];
+					const prev = cells[i - 1];
 					// cells are played left-to-right, top-to-bottom like reading a book
 
 					// number of cells between this cell and the next cell
@@ -263,16 +264,18 @@
 					const cellsBetween =
 						next && next.y === cell.y
 							? next.x - cell.x
-							: (next?.y - cell.y) * (dragBottomRight.x - dragTopLeft.x) +
-							  (next?.x - cell.x);
+							: next
+							? (next?.y - cell.y) * (dragBottomRight.x - dragTopLeft.x) +
+							  (next?.x - cell.x)
+							: 0;
 
 					const color = cell.color;
 
 					cell.color = 0;
 					updateCell(cell);
 
-					await COLOR_TO_NOTE[color]?.play();
-					await sleep(200 * (cellsBetween + 1));
+					await COLOR_TO_NOTE[color]?.().play();
+					await sleep(80 * cellsBetween + 200);
 
 					cell.color = color;
 					updateCell(cell);
